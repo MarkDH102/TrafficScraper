@@ -137,25 +137,38 @@ def getMoreInfo(href, itime1, timeFlag):
             if xpage.status_code == 200 :
                 xtree = html.fromstring(xpage.content)
                 moreinfo = xtree.xpath('//p[@class="trafficDesc"]//text()')
-                str = moreinfo[0]
-                if str.find("M5") >= 0 :
-                    if (timeFlag == 0) and (str.lower().find("north") >= 0) :
+                strX = moreinfo[0]
+
+                x = strX.find("M5 ")
+                y = strX.find("A41 ")
+                # If the A41 is mentioned before the M5 then flag that we need to check it out
+                if (y >= 0) and (y < x) :
+                    x = -1
+
+                if x >= 0 :
+                    if (timeFlag == 0) and (strX.lower().find("north") >= 0) :
                         good = True
-                    if (timeFlag == 1) and (str.lower().find("south") >= 0) :
+                    if (timeFlag == 1) and (strX.lower().find("south") >= 0) :
                         good = True
                 else :
                     good = True
 
                 #good = True
 
+                if strX.lower().find("no problems") >= 0 :
+                    good = False
+
+                if strX.lower().find("a41 clear") >= 0 :
+                    good = False
+
                 if good == True :
                     # Add a live incident to the list
-                    str = str.replace('\r', "")
-                    str = str.replace('\n', " ")
-                    _strIncidentsWithoutTimes.append(str)
+                    strX = strX.replace('\r', "")
+                    strX = strX.replace('\n', " ")
+                    _strIncidentsWithoutTimes.append(strX)
                     itime1 = itime1.lstrip("Last updated ")
-                    str = str + " [" + itime1 + "]"
-                    _strIncidents.append(str)
+                    strX = strX + " [" + itime1 + "]"
+                    _strIncidents.append(strX)
 
         except (TimeoutException, requests.ConnectionError, requests.Timeout, requests.RequestException):
             _strIncidents.append("Internet connection timed out")
